@@ -1,0 +1,123 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tgi_directory/features/auth/data/models/user_model.dart';
+
+class AuthService {
+  // Same Wi-Fi:
+  // final String baseUrl = "http://10.10.8.131:8000/auth";
+
+  // Wifi from Android
+  final String baseUrl = "http://192.168.43.149:8000/auth";
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<bool> signup(UserModel user) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/signup"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(user.toJson()),
+      );
+
+      print("Signup response: ${response.statusCode} - ${response.body}");
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print("Signup error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> login(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email, "password": password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storage.write(key: "token", value: data["access_token"]);
+        // final prefs = await SharedPreferences.getInstance();
+        // await prefs.setString('userId', data["user_id"]);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Login error: $e');
+      return false;
+    }
+  }
+
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId'); // store userId on login
+  }
+
+  Future<String?> getToken() async {
+    return await _storage.read(key: "token");
+  }
+
+  Future<Map<String, dynamic>?> getAccountInfo() async {
+    final token = await _storage.read(key: 'token');
+
+    if (token == null) {
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/me"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Account info error: $e");
+      return null;
+    }
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    final token = await _storage.read(key: "token");
+    if (token == null) {
+      return false;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/change-password"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "old_password": oldPassword,
+          "new_password": newPassword,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Change password error: $e");
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    await _storage.delete(key: "token"); //removing the saved JWT token
+  }
+
+  Future<void> clearAll() async {
+    await _storage.deleteAll();
+  }
+}
