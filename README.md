@@ -27,26 +27,48 @@ Beyond being a simple directory, the platform fosters community engagement by al
 ## 📸 Screenshots
 
 <table width="100%">
-  <!-- Table Header -->
+  <!-- ROW 1 HEADERS -->
   <tr>
     <th width="50%">Home Screen</th>
     <th width="25%">Place Details</th>
     <th width="25%">Ratings & Reviews</th>
   </tr>
-  <!-- Table Data / Images -->
+  <!-- ROW 1 IMAGES -->
   <tr valign="top">
-    <!-- Home Screen Column (2 Images side-by-side) -->
     <td>
       <img src="https://github.com/user-attachments/assets/11ab360c-a853-441b-9303-200e26f73cd7" width="48%" alt="Home Screen 1" />
       <img src="https://github.com/user-attachments/assets/33089f7e-32ac-424c-9757-506855b6aef0" width="48%" alt="Home Screen 2" />
     </td>
-    <!-- Place Details Column (1 Image) -->
     <td>
       <img src="https://github.com/user-attachments/assets/c80db330-6cba-4ecd-8e42-f640e63e9034" width="96%" alt="Place Details" />
     </td>
-    <!-- Ratings & Reviews Column (1 Image) -->
     <td>
       <img src="https://github.com/user-attachments/assets/f110e983-31ec-44dd-8023-b3f7bb80c214" width="96%" alt="Ratings and Reviews" />
+    </td>
+  </tr>
+
+  <!-- ROW 2 HEADERS -->
+  <tr>
+    <th width="25%">Search Places</th>
+    <th width="25%">User Profile</th>
+    <th width="50%">Settings</th>
+  </tr>
+  <!-- ROW 2 IMAGES -->
+  <tr valign="top">
+    <!-- Search Column (2 Images side-by-side) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/b7f13d33-5d9c-4f05-b5a9-77d336617821" width="96%" alt="Search Places 1" />
+      <!-- <img src="PASTE_YOUR_SEARCH_IMAGE_2_URL_HERE" width="48%" alt="Search Places 2" /> -->
+    </td>
+    <!-- Profile Column (1 Image) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/6f22b276-8fbf-484d-a238-7491ceae4b79" width="96%" alt="Profile Screen" />
+    </td>
+    <!-- Settings Column (1 Image) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/0a3d9756-82fd-4674-aa2b-5f66697366cc" width="48%" alt="Settings Screen Light Mode" />
+      <img src="https://github.com/user-attachments/assets/df8c8cb9-c54d-4bc2-bb0f-c2467b0d2639" width="48%" alt="Settings Screen Dark Mode" />
+      
     </td>
   </tr>
 </table>
