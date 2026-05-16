@@ -49,15 +49,16 @@ Beyond being a simple directory, the platform fosters community engagement by al
 
   <!-- ROW 2 HEADERS -->
   <tr>
-    <th width="25%">Search Places</th>
-    <th width="25%">User Profile</th>
     <th width="50%">Settings</th>
+    <th width="25%">User Profile</th>
+    <th width="25%">Search Places</th>
   </tr>
   <!-- ROW 2 IMAGES -->
   <tr valign="top">
     <!-- Search Column (1 Image) -->
     <td>
-      <img src="https://github.com/user-attachments/assets/b7f13d33-5d9c-4f05-b5a9-77d336617821" width="96%" alt="Search Places 1" />
+      <img src="https://github.com/user-attachments/assets/0a3d9756-82fd-4674-aa2b-5f66697366cc" width="48%" alt="Settings Screen Light Mode" />
+      <img src="https://github.com/user-attachments/assets/df8c8cb9-c54d-4bc2-bb0f-c2467b0d2639" width="48%" alt="Settings Screen Dark Mode" />
     </td>
     <!-- Profile Column (1 Image) -->
     <td>
@@ -65,8 +66,7 @@ Beyond being a simple directory, the platform fosters community engagement by al
     </td>
     <!-- Settings Column (2 Images side-by-side) -->
     <td>
-      <img src="https://github.com/user-attachments/assets/0a3d9756-82fd-4674-aa2b-5f66697366cc" width="48%" alt="Settings Screen Light Mode" />
-      <img src="https://github.com/user-attachments/assets/df8c8cb9-c54d-4bc2-bb0f-c2467b0d2639" width="48%" alt="Settings Screen Dark Mode" />
+     <img src="https://github.com/user-attachments/assets/b7f13d33-5d9c-4f05-b5a9-77d336617821" width="96%" alt="Search Places 1" />
     </td>
   </tr>
 </table>
