@@ -58,7 +58,6 @@ Beyond being a simple directory, the platform fosters community engagement by al
     <!-- Search Column (2 Images side-by-side) -->
     <td>
       <img src="https://github.com/user-attachments/assets/b7f13d33-5d9c-4f05-b5a9-77d336617821" width="96%" alt="Search Places 1" />
-      <!-- <img src="PASTE_YOUR_SEARCH_IMAGE_2_URL_HERE" width="48%" alt="Search Places 2" /> -->
     </td>
     <!-- Profile Column (1 Image) -->
     <td>
@@ -68,8 +67,6 @@ Beyond being a simple directory, the platform fosters community engagement by al
     <td>
       <img src="https://github.com/user-attachments/assets/0a3d9756-82fd-4674-aa2b-5f66697366cc" width="48%" alt="Settings Screen Light Mode" />
       <img src="https://github.com/user-attachments/assets/df8c8cb9-c54d-4bc2-bb0f-c2467b0d2639" width="48%" alt="Settings Screen Dark Mode" />
-      
-    </td>
   </tr>
 </table>
 
