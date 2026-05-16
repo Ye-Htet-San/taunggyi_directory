@@ -1,16 +1,45 @@
-# tgi_directory
+# Taunggyi Directory 🏔️📱
 
-A new Flutter project.
+Taunggyi Directory is a cross-platform mobile application built with Flutter designed to be the ultimate digital companion for exploring the city of Taunggyi. Whether you are a local looking for specific services or a visitor discovering the city's unique charm, this app provides detailed, structured information on locations, businesses, landmarks, and community spaces.
 
-## Getting Started
+Beyond being a simple directory, the platform fosters community engagement by allowing users to leave ratings, reactions, and feedback on their favorite spots.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+*   **Comprehensive Location Guide:** Discover and browse through categorized listings including restaurants, cafes, hotels, hospitals, pagodas, and tourist spots across Taunggyi.
+*   **Detailed Place Information:** View essential details for every listing, such as operating hours, contact details, exact addresses, and descriptive overviews.
+*   **Interactive Ratings & Feedback:** Share your experiences by rating places out of 5 stars, helping the community identify the best spots in town.
+*   **Expressive Reactions:** React to locations (likes, favorites, saves) to quickly bookmark places you love or want to visit later.
+*   **Optimized Performance:** Smooth UI/UX transitions engineered with Flutter's cross-platform rendering capabilities.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🛠️ Tech Stack
+
+*   **Framework:** [Flutter](https://flutter.dev/) (Dart)
+*   **Architecture:** Clean Architecture /Provider (State Management) 
+*   **Database/Backend:** Python / REST API
+
+---
+
+## 📸 Screenshots
+
+| Home Screen | Place Details | Ratings & Reviews |
+| :---: | :---: | :---: |
+| `<img width="720" height="1466" alt="IMG_20250910_122731" src="https://github.com/user-attachments/assets/33089f7e-32ac-424c-9757-506855b6aef0" />
+` | `[Link or Image here]` | `[Link or Image here]` |
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+Ensure you have the Flutter SDK installed on your machine.
+* [Flutter Installation Guide](https://docs.flutter.dev/get-started/install)
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/Ye-Htet-San/Taunggyi-Directory.git](https://github.com/Ye-Htet-San/Taunggyi-Directory.git)
