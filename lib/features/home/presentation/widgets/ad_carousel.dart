@@ -13,12 +13,11 @@ class _AdCarouselState extends State<AdCarousel> {
   int current = 0;
 
   final List<String> adImages = [
-    'assets/ads/antman.jpg',
-    'assets/ads/blackwidow.jpg',
-    'assets/ads/deadpool.jpg',
-    'assets/ads/endgame.webp',
-    'assets/ads/shanchi.jpg',
-    'assets/ads/spiderman.jpg',
+    'assets/ads/montainstarads.jpg',
+    'assets/ads/pindaya.jpeg',
+    'assets/ads/taunggyihotelads.jpg',
+    'assets/ads/upperhouseads.jpeg',
+    'assets/ads/InleLake1.jpg'
   ];
 
   @override
@@ -70,7 +69,7 @@ class _AdCarouselState extends State<AdCarousel> {
                   margin: EdgeInsets.symmetric(horizontal: 4.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: current == e.key ? Colors.white : Colors.white54
+                    color: current == e.key ? Colors.blue : Colors.white
                   ),
                   ),
               );

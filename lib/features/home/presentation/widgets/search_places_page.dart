@@ -1,22 +1,23 @@
 // ignore_for_file: avoid_print
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tgi_directory/features/categories/applications/services/categories_service.dart';
-// import 'package:tgi_directory/features/home/presentation/widgets/place_section.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
+import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 
-class SearchPlacesPage extends StatefulWidget {
+class SearchPlacesPage extends ConsumerStatefulWidget {
   // final List<Place> allPlaces; // pass all your places to this page
 
   const SearchPlacesPage({super.key});
 
   @override
-  State<SearchPlacesPage> createState() => _SearchPlacesPageState();
+  ConsumerState<SearchPlacesPage> createState() => _SearchPlacesPageState();
 }
 
-class _SearchPlacesPageState extends State<SearchPlacesPage> {
+class _SearchPlacesPageState extends ConsumerState<SearchPlacesPage> {
   List<Place> allPlaces = [];
   List<Place> filteredPlaces = [];
 
@@ -28,6 +29,7 @@ class _SearchPlacesPageState extends State<SearchPlacesPage> {
   List<String> subcategories = ['All'];
 
   Map<int, String> categoryMap = {}; // categoryId -> categoryName
+  Map<int, String> subcategoryMap = {}; // subcategoryId -> subcategoryName
 
   bool isLoading = true;
 
@@ -56,8 +58,15 @@ class _SearchPlacesPageState extends State<SearchPlacesPage> {
 
       allPlaces = places;
 
+      // Build subcategory map from places
+      subcategoryMap = {
+        for (var p in allPlaces) p.subcategoryId: p.subcategoryName ?? '',
+      };
       // subcategories
-      subcategories.addAll(allPlaces.map((p) => p.subcategory?? '').toSet());
+      subcategories.addAll(
+        subcategoryMap.values.where((s) => s.isNotEmpty).toSet(),
+      );
+      // Filter places initially
       filterPlaces();
     } catch (e) {
       print("Error fetching data: $e");
@@ -81,8 +90,11 @@ class _SearchPlacesPageState extends State<SearchPlacesPage> {
     }
     // Filter by subcategory
     if (selectedSubcategory != 'All') {
-      places =
-          places.where((p) => p.subcategory == selectedSubcategory).toList();
+      final selectedId =
+          subcategoryMap.entries
+              .firstWhere((e) => e.value == selectedSubcategory)
+              .key;
+      places = places.where((p) => p.subcategoryId == selectedId).toList();
     }
 
     // Filter by search query
@@ -108,6 +120,8 @@ class _SearchPlacesPageState extends State<SearchPlacesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final reviews = ref.watch(reviewsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search Places'),
@@ -200,31 +214,57 @@ class _SearchPlacesPageState extends State<SearchPlacesPage> {
           ),
         ),
       ),
-      body: isLoading ? const Center(child: CircularProgressIndicator(),):
-          filteredPlaces.isEmpty
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : filteredPlaces.isEmpty
               ? const Center(child: Text('No places found'))
               : ListView.separated(
                 padding: const EdgeInsets.all(12),
                 itemCount: filteredPlaces.length,
                 itemBuilder: (context, index) {
                   final place = filteredPlaces[index];
-
+                  
+                  final reviewCount =
+                      reviews
+                          .where((r) => r.placeId == place.id.toString())
+                          .length;
                   return ListTile(
                     contentPadding: const EdgeInsets.all(8),
                     leading:
                         place.images.isNotEmpty
                             ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                place.images[0],
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    '${PlaceService.baseUrl}/${place.images[0]}',
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                placeholder:
+                                    (context, url) => Container(
+                                      width: 60,
+                                      height: 60,
+                                      color: Colors.grey[300],
+                                      child: const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                errorWidget:
+                                    (context, url, error) => Icon(
+                                      Icons.broken_image,
+                                      size: 60,
+                                      color: Colors.red,
+                                    ),
                               ),
                             )
                             : const Icon(Icons.image_not_supported, size: 60),
                     title: Text(place.title),
-                    subtitle: Text('${place.subcategory} • ${place.rating} ⭐'),
+                    subtitle: Text(
+                      '${place.subcategoryName ?? ""} • ${place.rating.toStringAsFixed(1)} ⭐ ($reviewCount) reviews',
+                    ),
                     onTap: () {
                       context.push('/place-detail', extra: place);
                     },

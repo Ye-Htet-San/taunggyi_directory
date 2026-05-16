@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tgi_directory/layout/cherry_blossom_background.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -9,7 +10,6 @@ class MainScaffold extends StatelessWidget {
     required this.child,
     required this.currentIndex,
   });
-
 
   void onTap(BuildContext context, int index) {
     switch (index) {
@@ -34,7 +34,10 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child,
+      body: Stack(
+        children:
+        [CherryBlossomBackground(),
+         child]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (value) => onTap(context, value),

@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tgi_directory/features/auth/application/services/auth_service.dart';
@@ -12,7 +12,10 @@ class ProfileService {
 
   static const String profileKey = "userProfile";
 
-  final String baseUrl = "http://192.168.43.149:8000/auth";
+  // final String baseUrl = "http://10.10.8.119:8000/auth";
+  final String baseUrl = "http://192.168.174.158:8000/auth";
+
+  final String imageBase = "http://192.168.174.158:8000";
 
   //Save profile to SharedPreferences
   Future<void> saveProfile(UserProfile profile) async {
@@ -45,7 +48,6 @@ class ProfileService {
 
   /// Load profile from backend
   Future<UserProfile?> fetchProfileFromBackend() async {
-
     final token = await authService.getToken();
     if (token == null) {
       return null;
@@ -55,7 +57,6 @@ class ProfileService {
       Uri.parse('$baseUrl/me'),
       headers: {'Authorization': 'Bearer $token'},
     );
-
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -68,7 +69,42 @@ class ProfileService {
     }
   }
 
-  /// Update profile on backend
+  /// Upload single profile image to backend
+  /// Return the relative avatarPath (e.g "/uploads/users/abc.jpg")
+
+  Future<String?> uploadProfileImage(File imageFile) async {
+    final token = await authService.getToken();
+    if (token == null) return null;
+
+    final uri = Uri.parse('$baseUrl/profile/upload-image');
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // Field name must match backend : "file"
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
+
+    final streamedResponse = await request.send();
+    final responseBody = await streamedResponse.stream.bytesToString();
+
+    if (streamedResponse.statusCode == 200) {
+      try {
+        final data = jsonDecode(responseBody) as Map<String, dynamic>;
+        final avatarPath = data['avatarPath'] as String?;
+        return avatarPath;
+      } catch (e) {
+        print("Failed to decode upload response: $e");
+        return null;
+      }
+    } else {
+      print(
+        "Image upload failed: ${streamedResponse.statusCode}- $responseBody",
+      );
+      return null;
+    }
+  }
+
   Future<bool> updateProfileBackend(UserProfile profile) async {
     final token = await authService.getToken();
     if (token == null) {
@@ -81,7 +117,13 @@ class ProfileService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode(profile.toMap()),
+      body: jsonEncode({
+        "userName": profile.userName,
+        "userBio": profile.userBio,
+        "tagline": profile.tagline,
+        "homeTown": profile.homeTown,
+        "avatarPath": profile.avatarPath, // ✅ include this
+      }),
     );
     if (response.statusCode == 200) {
       await saveProfile(profile); //update local cache too
@@ -92,3 +134,7 @@ class ProfileService {
     }
   }
 }
+
+  /// Update profile on backend
+
+

@@ -11,7 +11,9 @@ class CategorySection extends StatelessWidget {
 
   const CategorySection({super.key, required this.title});
 
-  static const String baseUrl = "http://192.168.43.149:8000";
+  // static const String baseUrl = "http://10.10.8.119:8000";
+
+  static const String baseUrl = "http://192.168.174.158:8000";
 
   Future<List<Map<String, dynamic>>> fetchCategories() async {
     final url = Uri.parse("$baseUrl/categories/");

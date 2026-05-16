@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tgi_directory/features/profile/application/providers/profile_provider.dart';
+import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
 import 'package:tgi_directory/features/profile/data/models/user_profile.dart';
 import 'package:tgi_directory/features/profile/presentation/widgets/editable_card.dart';
 
@@ -47,10 +48,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       taglineController.text = profile.tagline;
       selectedBios = profile.userBio;
       selectedTown = profile.homeTown;
-
-      if (profile.avatarPath.startsWith('/')) {
-        _profileImage = File(profile.avatarPath);
-      }
     }
   }
 
@@ -119,6 +116,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             onPressed: () async {
               if (profile == null) return;
 
+              // Create the updated profile object (text fields)
+
               final updatedProfile = UserProfile(
                 userId: profile.userId,
                 userName:
@@ -133,13 +132,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ? taglineController.text.trim()
                         : profile.tagline,
                 homeTown: selectedTown ?? profile.homeTown,
-                avatarPath: _profileImage?.path ?? profile.avatarPath,
+                avatarPath: profile.avatarPath,
               );
-              await ref
-                  .read(profileProvider.notifier)
-                  .updateProfile(updatedProfile);
+              // Call notifier update with optional new avatar file
 
-              if (mounted) context.pop();
+              final success = await ref
+                  .read(profileProvider.notifier)
+                  .updateProfile(updatedProfile,newAvatar: _profileImage);
+
+              if (!success) {
+                // show failure message if you want
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update profile.')),
+                );
+              }else{
+                 if (mounted) context.pop();
+              }
+             
             },
             child: Text(
               "Save",
@@ -179,13 +188,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         radius: 55,
                         backgroundImage:
                             _profileImage != null
-                                ? FileImage(_profileImage!)
-                                
-                                :(profile?.avatarPath.startsWith('/') ?? false
-                                    ? FileImage(File(profile!.avatarPath))
-                                    : AssetImage(profile!.avatarPath)
-                                        as ImageProvider)
-                                
+                                ? FileImage(
+                                  _profileImage!,
+                                ) // preview local picked image
+                                : (profile != null &&
+                                        profile.avatarPath.startsWith(
+                                          '/uploads',
+                                        )
+                                    ? NetworkImage(
+                                      '${ProfileService().imageBase}${profile.avatarPath}',
+                                    )
+                                    : (profile != null)
+                                    ? AssetImage(profile.avatarPath)
+                                    : const AssetImage(
+                                      'assets/images/avatar.png',
+                                    )),
                       ),
                       Positioned(
                         bottom: 4,

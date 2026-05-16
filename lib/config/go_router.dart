@@ -7,7 +7,8 @@ import 'package:tgi_directory/features/auth/presentation/screens/auth_splash_scr
 import 'package:tgi_directory/features/auth/presentation/screens/welcome_splash_screen.dart';
 import 'package:tgi_directory/features/categories/presentation/screens/category_detail_page.dart';
 import 'package:tgi_directory/features/categories/presentation/screens/category_page.dart';
-import 'package:tgi_directory/features/comments/presentation/screens/rate_and_comment.dart';
+import 'package:tgi_directory/features/profile/presentation/screens/my_reviews_page.dart';
+import 'package:tgi_directory/features/reviews/presentation/rate_and_review.dart';
 import 'package:tgi_directory/features/favorites/presentation/screens/favorite_page.dart';
 import 'package:tgi_directory/features/home/presentation/screens/home_page.dart';
 import 'package:tgi_directory/features/home/presentation/widgets/search_places_page.dart';
@@ -59,6 +60,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(
+            path: '/review/:placeId',
+            name: 'review',
+            builder: (context, state) {
+              final placeId = state.pathParameters['placeId']!;
+              return RateAndReview(placeId: placeId);
+            },
+          ),
+          GoRoute(
             path: 'all-reviews',
             name: 'allReviews',
             builder: (context, state) {
@@ -70,15 +79,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       GoRoute(
-        path: '/review/:placeId',
-        name: 'review',
-        builder: (context, state) {
-          final placeId = state.pathParameters['placeId']!;
-          return RateAndComment(placeId: placeId);
-        },
-      ),
-
-      GoRoute(
         path: '/place-grid',
         builder: (context, state) {
           final title = state.uri.queryParameters['title'] ?? 'Places';
@@ -86,7 +86,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return PlaceGridScreen(title: title, places: places);
         },
       ),
-
 
       // Main app routes with bottom navigation
       ShellRoute(
@@ -102,8 +101,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/search-places',
                 builder: (context, state) {
-                  return SearchPlacesPage(
-                  ); // get the passed data
+                  return SearchPlacesPage(); // get the passed data
                 },
               ),
             ],
@@ -116,7 +114,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/category/:id',
             builder: (context, state) {
-              final categoryId =int.parse(state.pathParameters['id']!);
+              final categoryId = int.parse(state.pathParameters['id']!);
               return CategoryDetailPage(categoryId: categoryId);
             },
           ),
@@ -163,6 +161,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+              GoRoute(
+                path: '/my-reviews',
+                builder: (context, state) => const MyReviewsPage(),
+              ),
             ],
           ),
         ],
@@ -171,15 +173,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
     redirect: (context, state) {
       final isAuthChecked = authController.isAuthChecked;
-      
-      //This checks if the user is logged in. It reads from (authControllerProvider)
-      final loggedIn = authController.isLoggedIn; //Checking whether login or not(true/false)
 
-      final isWelcome = state.matchedLocation == '/'; // This checks if the current page being visited is the **splash screen**
+      //This checks if the user is logged in. It reads from (authControllerProvider)
+      final loggedIn =
+          authController.isLoggedIn; //Checking whether login or not(true/false)
+
+      final isWelcome =
+          state.matchedLocation ==
+          '/'; // This checks if the current page being visited is the **splash screen**
 
       final isAuthSplash = state.matchedLocation == '/auth-splash';
 
-      final isLogin = state.matchedLocation == '/login'; // This checks if the current page being visited is the login page.
+      final isLogin =
+          state.matchedLocation ==
+          '/login'; // This checks if the current page being visited is the login page.
       final isSignup = state.matchedLocation == '/signup';
 
       // Wait until auth check is complete
@@ -190,10 +197,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-    
       //If the user is **not logged in**, only allow `/login` route.
       //If they try to access any other page (like `/home`), redirect to `/login`.
-
 
       if (!loggedIn && !(isLogin || isSignup || isAuthSplash)) {
         return '/login';

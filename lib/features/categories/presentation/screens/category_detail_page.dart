@@ -1,20 +1,23 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tgi_directory/features/categories/applications/services/categories_service.dart';
 // import 'package:tgi_directory/features/home/presentation/widgets/place_section.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
+import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 // import 'package:tgi_directory/features/places/data/models/sample_places.dart';
 
-class CategoryDetailPage extends StatefulWidget {
+class CategoryDetailPage extends ConsumerStatefulWidget {
   final int categoryId;
   const CategoryDetailPage({super.key, required this.categoryId});
 
   @override
-  State<CategoryDetailPage> createState() => _CategoryDetailPageState();
+  ConsumerState<CategoryDetailPage> createState() => _CategoryDetailPageState();
 }
 
-class _CategoryDetailPageState extends State<CategoryDetailPage> {
+class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
   Map<String, dynamic>? category;
   List<Place> places = [];
   bool loading = true;
@@ -41,9 +44,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
       final allPlaces = await PlaceService.getPlaces();
       places =
-          allPlaces
-              .where((p) => p.categoryId ==widget.categoryId)
-              .toList();
+          allPlaces.where((p) => p.categoryId == widget.categoryId).toList();
       setState(() {
         loading = false;
       });
@@ -66,8 +67,11 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     final filteredPlaces =
         places.where((place) {
           if (selectedSubcategory == 'All') return true;
-          return place.subcategory?.toLowerCase() == selectedSubcategory.toLowerCase();
+          return place.subcategoryName?.toLowerCase() ==
+              selectedSubcategory.toLowerCase();
         }).toList();
+
+    final reviews = ref.watch(reviewsProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(category?['name'] ?? 'Category')),
@@ -124,10 +128,13 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                   crossAxisCount: 2, //  2 items per row
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
-                  childAspectRatio: 0.8, //  Adjust height
+                  childAspectRatio: 0.75, //  Adjust height
                 ),
                 itemBuilder: (context, index) {
                   final place = filteredPlaces[index];
+                  final reviewCount= reviews
+                          .where((r) => r.placeId == place.id.toString())
+                          .length;
 
                   return GestureDetector(
                     onTap: () {
@@ -152,16 +159,34 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Image
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child:
-                                    place.images.isNotEmpty
-                                      ? Image.network(
-                                        place.images[0],
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child:
+                                  place.images.isNotEmpty
+                                      ? CachedNetworkImage(
+                                        imageUrl:
+                                            '${PlaceService.baseUrl}/${place.images[0]}',
                                         height: 100,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
-                                        cacheWidth: 512,
+                                        placeholder:
+                                            (context, url) => Container(
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                        errorWidget:
+                                            (context, url, error) => Container(
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                Icons.broken_image,
+                                                color: Colors.red,
+                                              ),
+                                            ),
                                       )
                                       : Container(
                                         height: 100,
@@ -185,7 +210,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
                             // Subcategory
                             Text(
-                              place.subcategory ?? '',
+                              place.subcategoryName ?? '',
                               style: Theme.of(context).textTheme.bodySmall,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -196,14 +221,18 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                             // Rating
                             Row(
                               children: [
-                                const Icon(
-                                  Icons.star,
-                                  size: 12,
-                                  color: Colors.amber,
+                                Text(
+                                  place.rating.toStringAsFixed(1),
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                                 const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: Colors.amber,
+                                ),
                                 Text(
-                                  place.rating.toString(),
+                                  '($reviewCount) reviews',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],

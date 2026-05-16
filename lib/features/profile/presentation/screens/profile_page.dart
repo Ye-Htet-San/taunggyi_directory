@@ -1,11 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tgi_directory/features/favorites/application/providers/favorites_provider.dart';
 import 'package:tgi_directory/features/profile/application/providers/profile_provider.dart';
+import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
 import 'package:tgi_directory/features/profile/presentation/widgets/stat_card.dart';
+import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 import 'package:tgi_directory/features/visited/application/providers/visited_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -21,7 +21,9 @@ class ProfilePage extends ConsumerWidget {
     final favoriteCount = favoriteIds.length;
     final visitedCount = ref.watch(visitedProvider).length;
 
-    final int reviewCount = 0; //TODO: Need to update later
+    final myReviews =
+        ref.watch(reviewsProvider).where((r) => r.isMyReview).toList();
+    final myReviewCount = myReviews.length;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = Theme.of(context).cardColor;
@@ -54,8 +56,10 @@ class ProfilePage extends ConsumerWidget {
                     radius: 50,
                     backgroundImage:
                         profile != null
-                            ? (profile.avatarPath.startsWith('/')
-                                    ? FileImage(File(profile.avatarPath))
+                            ? (profile.avatarPath.startsWith('/uploads/')
+                                    ? NetworkImage(
+                                      '${ProfileService().imageBase}${profile.avatarPath}',
+                                    )
                                     : AssetImage(profile.avatarPath))
                                 as ImageProvider
                             : const AssetImage('assets/images/avatar.png'),
@@ -69,7 +73,6 @@ class ProfilePage extends ConsumerWidget {
                     ),
                   ),
 
-
                   // Show bio & tagline together
                   const SizedBox(height: 4),
                   Text(
@@ -81,7 +84,7 @@ class ProfilePage extends ConsumerWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (profile?.tagline.isNotEmpty??false)
+                  if (profile?.tagline.isNotEmpty ?? false)
                     Text(
                       "\"${profile!.tagline}\"",
                       style: textTheme.bodySmall?.copyWith(
@@ -139,7 +142,7 @@ class ProfilePage extends ConsumerWidget {
                     child: StatCard(
                       icon: Icons.star,
                       title: "Reviews",
-                      value: reviewCount,
+                      value: myReviewCount,
                       color: Colors.amber,
                     ),
                   ),
@@ -165,6 +168,7 @@ class ProfilePage extends ConsumerWidget {
               child: Column(
                 children: [
                   ListTile(
+                    tileColor: cardColor,
                     leading: const Icon(Icons.favorite, color: Colors.red),
                     title: Text("My Favorites", style: textTheme.bodyLarge),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -172,15 +176,17 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   const Divider(height: 0),
                   ListTile(
+                    tileColor: cardColor,
                     leading: const Icon(Icons.star, color: Colors.amber),
                     title: Text("My Reviews", style: textTheme.bodyLarge),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      // TODO: Navigate to Reviews Page
+                      context.push('/profile/my-reviews');
                     },
                   ),
                   const Divider(height: 0),
                   ListTile(
+                    tileColor: cardColor,
                     leading: const Icon(Icons.settings, color: Colors.blue),
                     title: Text("Settings", style: textTheme.bodyLarge),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tgi_directory/config/base_notifier.dart';
-import 'package:tgi_directory/features/places/application/services/place_service.dart';
+import 'package:tgi_directory/features/auth/application/services/auth_service.dart';
+import 'package:tgi_directory/features/reviews/application/services/reviews_service.dart';
 import 'package:tgi_directory/features/reviews/data/models/review.dart';
 
 final reviewsProvider = StateNotifierProvider<ReviewsNotifier, List<Review>>((
@@ -16,24 +17,26 @@ class ReviewsNotifier extends BaseNotifier<Review> {
 
   @override
   Review fromStorage(String raw) {
-    final map = jsonDecode(raw);
+    final map = jsonDecode(raw) as Map<String, dynamic>;
     return Review(
-      id: map['id'],
-      userId: map['userId'],
-      userName: map['userName'],
-      userAvatar: map['userAvatar'],
-      rating: (map['rating'] as num).toDouble(),
-      comment: map['comment'],
+      id: map['id'].toString(),
+      placeId: (map['placeId'] ?? '').toString(),
+      userId: map['userId'].toString(),
+      userName: map['userName'] ?? '',
+      userAvatar: map['userAvatar'] ?? '',
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: map['comment'] ?? '',
       date: DateTime.parse(map['date']),
-      likes: map['likes'],
-      dislikes: map['dislikes'],
-      isMyReview: map['isMyReview'],
+      likes: (map['likes'] ?? 0) as int,
+      dislikes: (map['dislikes'] ?? 0) as int,
+      isMyReview: map['isMyReview'] ?? false,
     );
   }
 
   @override
   String toStorage(Review review) => jsonEncode({
     'id': review.id,
+    'placeId': review.placeId,
     'userId': review.userId,
     'userName': review.userName,
     'userAvatar': review.userAvatar,
@@ -52,12 +55,22 @@ class ReviewsNotifier extends BaseNotifier<Review> {
     String comment,
     String token,
   ) async {
-    await PlaceService.addReview(placeId, rating, comment, token);
-    final review = Review(
+    await ReviewService.addReview(
+      placeId: placeId,
+      rating: rating,
+      comment: comment,
+      token: token,
+    );
+
+    final account = await AuthService().getAccountInfo();
+    final myUserId = account?['userId']?.toString() ?? 'me';
+
+    final newReview = Review(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userId: "0", // assign from auth
-      userName: "Me",
-      userAvatar: "",
+      placeId: placeId.toString(),
+      userId: myUserId, // assign from auth
+      userName: account?["userName"] ?? 'Me',
+      userAvatar: account?['avatarPath'] ?? '',
       rating: rating,
       comment: comment,
       date: DateTime.now(),
@@ -65,11 +78,94 @@ class ReviewsNotifier extends BaseNotifier<Review> {
       dislikes: 0,
       isMyReview: true,
     );
-    state = [...state, review];
+    state = [newReview, ...state];
     await saveToStorage();
   }
 
-  Future<void> loadFromBackend() async {
+  Future<void> loadFromBackend(int placeId) async {
     // Optional: implement fetch reviews for current user
+    try {
+      final token = await AuthService().getToken();
+      final account =
+          token != null ? await AuthService().getAccountInfo() : null;
+      final myUserId = account?['userId']?.toString();
+
+      final reviews = await ReviewService.getReviews(placeId);
+
+      // ensure isMyReview flag is set based on myUserId
+      final updatedReviews =
+          reviews
+              .map(
+                (r) => Review(
+                  id: r.id,
+                  placeId: r.placeId,
+                  userId: r.userId,
+                  userName: r.userName,
+                  userAvatar: r.userAvatar,
+                  rating: r.rating,
+                  comment: r.comment,
+                  date: r.date,
+                  likes: r.likes,
+                  dislikes: r.dislikes,
+                  isMyReview: myUserId != null && myUserId == r.userId,
+                ),
+              )
+              .toList();
+      final otherReviews =
+          state.where((r) => r.placeId != placeId.toString()).toList();
+      state = [...otherReviews, ...updatedReviews];
+      await saveToStorage();
+    } catch (e) {
+      // fallback: use local storage
+      await loadFromStorage();
+    }
+  }
+
+  // Update review
+  Future<void> updateReview({
+    required int reviewId,
+    required int placeId,
+    required double rating,
+    required String comment,
+    required String token,
+  }) async {
+    await ReviewService.updateReview(
+      reviewId: reviewId,
+      rating: rating,
+      comment: comment,
+      token: token,
+    );
+    await loadFromBackend(placeId);
+  }
+
+  /// React to review
+  Future<void> reactReview({
+    required int reviewId,
+    required String reactionType,
+    required String token,
+  }) async {
+    await ReviewService.reactReview(
+      reviewId: reviewId,
+      reactionType: reactionType,
+      token: token,
+    );
+
+    state =
+        state.map((r) {
+          if (r.id == reviewId.toString()) {
+            if (reactionType == "like") {
+              return r.copyWith(likes: r.likes + 1);
+            } else {
+              return r.copyWith(dislikes: r.dislikes + 1);
+            }
+          }
+          return r;
+        }).toList();
+
+    await saveToStorage();
+  }
+
+  Future<void> refreshLocalFromBackend(int placeId) async {
+    await loadFromBackend(placeId);
   }
 }

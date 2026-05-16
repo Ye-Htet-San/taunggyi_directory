@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:tgi_directory/features/home/presentation/widgets/section_title.dart';
 import 'package:tgi_directory/features/places/application/providers/places_provider.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
+import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
+import 'package:tgi_directory/features/reviews/data/models/review.dart';
 
 class PlaceSection extends ConsumerWidget {
   final String title;
@@ -17,6 +19,8 @@ class PlaceSection extends ConsumerWidget {
     final placesAsync = ref.watch(placesProvider);
     final placesNotifier = ref.read(placesProvider.notifier);
 
+    final reviews = ref.watch(reviewsProvider);
+
     return RefreshIndicator(
       onRefresh: () => placesNotifier.refresh(),
       child: placesAsync.when(
@@ -25,7 +29,7 @@ class PlaceSection extends ConsumerWidget {
           final cached = placesNotifier.cached;
           if (cached.isNotEmpty) {
             final places = _filterPlaces(cached);
-            return _buildPlaceList(context, places);
+            return _buildPlaceList(context, places, reviews);
           }
           // else show loader
           return const Center(child: CircularProgressIndicator());
@@ -34,13 +38,13 @@ class PlaceSection extends ConsumerWidget {
           final cached = placesNotifier.cached;
           if (cached.isNotEmpty) {
             final places = _filterPlaces(cached);
-            return _buildPlaceList(context, places);
+            return _buildPlaceList(context, places, reviews);
           }
           return Center(child: Text('Failed to load places'));
         },
         data: (allPlaces) {
           final places = _filterPlaces(allPlaces);
-          return _buildPlaceList(context, places);
+          return _buildPlaceList(context, places, reviews);
         },
       ),
     );
@@ -52,7 +56,11 @@ class PlaceSection extends ConsumerWidget {
         : places.where((p) => p.isPopular).toList();
   }
 
-  Widget _buildPlaceList(BuildContext context, List places) {
+  Widget _buildPlaceList(
+    BuildContext context,
+    List places,
+    List<Review> reviews,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -84,6 +92,14 @@ class PlaceSection extends ConsumerWidget {
             itemCount: places.length,
             itemBuilder: (context, index) {
               final place = places[index];
+              
+              //Count reviews only for this place
+
+              final placeReviewCount = reviews.where(
+                (r) => r.placeId == place.id.toString(),
+              ).length;
+              
+              print('placeReviewCount :$placeReviewCount');
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: GestureDetector(
@@ -142,6 +158,7 @@ class PlaceSection extends ConsumerWidget {
                                     )
                                     : Container(
                                       height: 120,
+                                      width: double.infinity,
                                       color: Colors.grey[300],
                                       child: const Icon(
                                         Icons.image_not_supported,
@@ -156,7 +173,7 @@ class PlaceSection extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            place.subcategory ?? '',
+                            place.subcategoryName ?? '',
                             maxLines: 1,
                             style: Theme.of(context).textTheme.bodySmall,
                             overflow: TextOverflow.ellipsis,
@@ -164,14 +181,19 @@ class PlaceSection extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(
-                                Icons.star,
-                                size: 12,
-                                color: Colors.amber,
+                              Text(
+                                place.rating.toStringAsFixed(1),
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                               const SizedBox(width: 4),
+                              const Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber,
+                              ),
+                              SizedBox(width: 4),
                               Text(
-                                place.rating.toString(),
+                                '($placeReviewCount) reviews',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],

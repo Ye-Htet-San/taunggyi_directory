@@ -68,140 +68,149 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
-
+    final cardColor = Theme.of(context).cardColor;
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        children: [
-          // Account Section
-          const ListTile(
-            title: Text(
-              'Account Settings',
-              style: TextStyle(fontWeight: FontWeight.bold),
+      body: SafeArea(
+        child: ListView(
+          children: [
+            // Account Section
+            ListTile(
+              title: Text(
+                'Account Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: Text(
-              'Edit Profile',
-              style: Theme.of(context).textTheme.bodyLarge,
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.person),
+              title: Text(
+                'Edit Profile',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => context.push('/profile/edit'),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.push('/profile/edit'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: Text(
-              'My Account',
-              style: Theme.of(context).textTheme.bodyLarge,
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.account_circle),
+              title: Text(
+                'My Account',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              subtitle: Text(
+                'View or manage your account',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => context.push('/profile/settings/account'),
             ),
-            subtitle: Text(
-              'View or manage your account',
-              style: Theme.of(context).textTheme.bodyMedium,
+            const Divider(),
+        
+            // App Preferences
+            const ListTile(
+              title: Text(
+                'App Preferences',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.push('/profile/settings/account'),
-          ),
-          const Divider(),
-
-          // App Preferences
-          const ListTile(
-            title: Text(
-              'App Preferences',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            SwitchListTile(
+              tileColor: cardColor,
+              secondary: const Icon(Icons.dark_mode),
+              title: Text(
+                'Dark Mode',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              value: isDarkMode,
+              onChanged: (value) async {
+                final profile = ref.read(profileProvider);
+                final userId = profile?.userId ?? 'Guest';
+                ref.read(themeProvider.notifier).toggleTheme(value, userId);
+              },
             ),
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.dark_mode),
-            title: Text(
-              'Dark Mode',
-              style: Theme.of(context).textTheme.bodyLarge,
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.language),
+              title: Text(
+                'Language',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              subtitle: Text(
+                'English',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              onTap: () {},
             ),
-            value: isDarkMode,
-            onChanged: (value) async {
-              final profile = ref.read(profileProvider);
-              final userId = profile?.userId ?? 'Guest';
-              ref.read(themeProvider.notifier).toggleTheme(value,userId);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(
-              'Language',
-              style: Theme.of(context).textTheme.bodyLarge,
+            const Divider(),
+        
+            // Privacy & Security
+            const ListTile(
+              title: Text(
+                'Privacy & Security',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-            subtitle: Text(
-              'English',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            onTap: () {},
-          ),
-          const Divider(),
-
-          // Privacy & Security
-          const ListTile(
-            title: Text(
-              'Privacy & Security',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_forever),
-            title: Text(
-              'Clear Local Data',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            onTap: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('Clear Local Data?'),
-                      content: const Text(
-                        'This will remove all stored data and log you out. Proceed?',
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.delete_forever),
+              title: Text(
+                'Clear Local Data',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onTap: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Clear Local Data?'),
+                        content: const Text(
+                          'This will remove all stored data and log you out. Proceed?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Clear'),
+                          ),
+                        ],
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Clear'),
-                        ),
-                      ],
-                    ),
-              );
-              if (confirm == true) await clearLocalData(context, ref);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text('Logout', style: Theme.of(context).textTheme.bodyLarge),
-            onTap: () => logout(context, ref),
-          ),
-          const Divider(),
-
-          // About
-          const ListTile(
-            title: Text('About', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: Text(
-              'About App',
-              style: Theme.of(context).textTheme.bodyLarge,
+                );
+                if (confirm == true) await clearLocalData(context, ref);
+              },
             ),
-            onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationName: 'TGI Directory',
-                applicationVersion: '1.0.0',
-                applicationLegalese: '© 2025 Taunggyi Guide',
-              );
-            },
-          ),
-        ],
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.logout),
+              title: Text('Logout', style: Theme.of(context).textTheme.bodyLarge),
+              onTap: () => logout(context, ref),
+            ),
+            const Divider(),
+        
+            // About
+            const ListTile(
+              title: Text('About', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            ListTile(
+              tileColor: cardColor,
+              leading: const Icon(Icons.info),
+              title: Text(
+                'About App',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onTap: () {
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'TGI Directory',
+                  applicationVersion: '1.0.0',
+                  applicationLegalese: '© 2025 Taunggyi Guide',
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

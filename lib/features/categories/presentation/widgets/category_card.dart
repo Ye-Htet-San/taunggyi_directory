@@ -24,19 +24,19 @@ class CategoryCard extends StatelessWidget {
         return Icons.park;
       case 'shopping':
         return Icons.shopping_bag;
-      case 'cafe':
-        return Icons.coffee;
+      case 'local_cafe':
+        return Icons.local_cafe;
       case 'bar':
         return Icons.local_bar;
       case 'hospital':
         return Icons.local_hospital;
       case 'bank':
         return Icons.account_balance;
-      case 'gas station':
+      case 'gas_station':
         return Icons.local_gas_station;
       case 'library':
         return Icons.local_library;
-      case 'pharmacies':
+      case 'pharmacy':
         return Icons.local_pharmacy;
       case 'transport':
         return Icons.directions_bus;

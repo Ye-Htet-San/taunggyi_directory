@@ -1,17 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
+import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 
-class PlaceGridScreen extends StatelessWidget {
+class PlaceGridScreen extends ConsumerWidget {
   final String title;
   final List<Place> places;
 
   const PlaceGridScreen({super.key, required this.title, required this.places});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) {
+
+    final reviews= ref.watch(reviewsProvider);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Padding(
@@ -27,6 +31,9 @@ class PlaceGridScreen extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final place = places[index];
+            final reviewCount= reviews.where(
+                (r) => r.placeId == place.id.toString(),
+              ).length;
 
             return GestureDetector(
               onTap: () {
@@ -58,22 +65,28 @@ class PlaceGridScreen extends StatelessWidget {
                         child:
                             place.images.isNotEmpty
                                 ? CachedNetworkImage(
-                                  imageUrl: '${PlaceService.baseUrl}/${place.images[0]}',
+                                  imageUrl:
+                                      '${PlaceService.baseUrl}/${place.images[0]}',
                                   height: 100,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    height: 100,
-                                    color: Colors.grey[300],
-                                    child: const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    height: 100,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.broken_image,color: Colors.red,),
-                                  ),
+                                  placeholder:
+                                      (context, url) => Container(
+                                        height: 100,
+                                        color: Colors.grey[300],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                  errorWidget:
+                                      (context, url, error) => Container(
+                                        height: 100,
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          color: Colors.red,
+                                        ),
+                                      ),
                                 )
                                 : Container(
                                   height: 100,
@@ -97,7 +110,7 @@ class PlaceGridScreen extends StatelessWidget {
 
                       // Subcategory
                       Text(
-                        place.subcategory?? '',
+                        place.subcategoryName ?? '',
                         style: Theme.of(context).textTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -108,11 +121,15 @@ class PlaceGridScreen extends StatelessWidget {
                       // Rating
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 12, color: Colors.amber),
-                          const SizedBox(width: 4),
                           Text(
-                            place.rating.toString(),
-                            style:Theme.of(context).textTheme.bodySmall,
+                            place.rating.toStringAsFixed(1),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                          Text(
+                            '($reviewCount) reviews',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -122,15 +139,12 @@ class PlaceGridScreen extends StatelessWidget {
                       // Description
                       Text(
                         place.description,
-                        style:  Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? Colors.grey[400]
-                                          : Colors.grey[700],
-                                ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[700],
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

@@ -26,6 +26,17 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ],
+        // flexibleSpace: Container(
+        //   decoration: const BoxDecoration(
+        //     image: DecorationImage(
+        //       image: AssetImage(
+        //         'assets/images/cherry.png',
+        //       ), // cherry PNG
+        //       fit: BoxFit.cover,
+        //       opacity: 0.2, // subtle effect
+        //     ),
+        //   ),
+        // ),
       ),
 
       body: SafeArea(
@@ -51,13 +62,15 @@ class HomePage extends StatelessWidget {
               //Currently trendy or frequently visited — due to hype, events, social media, etc.
               title: 'Porpular Places',
               // places: samplePlaces,
-              subtitle: 'Discover spots that locals and tourists love to visit!',
+              subtitle:
+                  'Discover spots that locals and tourists love to visit!',
             ),
             SizedBox(height: 8),
 
             UpcomingEventSection(
               title: 'Upcoming Events',
-              subtitle: 'Don’t miss exciting festivals, fairs, and cultural happenings!',
+              subtitle:
+                  'Don’t miss exciting festivals, fairs, and cultural happenings!',
               places: upcomingEvents,
             ),
           ],

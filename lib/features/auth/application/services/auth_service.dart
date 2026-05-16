@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tgi_directory/features/auth/data/models/user_model.dart';
 
 class AuthService {
   // Same Wi-Fi:
-  // final String baseUrl = "http://10.10.8.131:8000/auth";
+  // final String baseUrl = "http://10.10.8.119:8000/auth";
 
   // Wifi from Android
-  final String baseUrl = "http://192.168.43.149:8000/auth";
+  final String baseUrl = "http://192.168.174.158:8000/auth";
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<bool> signup(UserModel user) async {
@@ -39,9 +40,15 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        await _storage.write(key: "token", value: data["access_token"]);
-        // final prefs = await SharedPreferences.getInstance();
-        // await prefs.setString('userId', data["user_id"]);
+
+        print("Login response body: $data");
+        await _storage.write(key: "access_token", value: data["access_token"]);
+        await _storage.write(
+          key: "refresh_token",
+          value: data["refresh_token"],
+        );
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', data["user_id"].toString());
         return true;
       } else {
         return false;
@@ -58,11 +65,48 @@ class AuthService {
   }
 
   Future<String?> getToken() async {
-    return await _storage.read(key: "token");
+    final accesstoken = await _storage.read(key: "access_token");
+    final refreshToken = await _storage.read(key: "refresh_token");
+
+    print("Token from storage: $accesstoken");
+    if (accesstoken == null || refreshToken == null) return null;
+
+    // If expired, refresh
+    final isExpired = JwtDecoder.isExpired(accesstoken); //
+    if (isExpired) {
+      final newToken = await _refreshAccessToken(refreshToken);
+      return newToken;
+    }
+
+    return accesstoken;
+  }
+
+  Future<String?> _refreshAccessToken(String refreshToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/refresh"),
+        headers: {"Authorization": "Bearer $refreshToken"},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storage.write(key: "access_token", value: data["access_token"]);
+        await _storage.write(
+          key: "refresh_token",
+          value: data["refresh_token"],
+        );
+        return data["access_token"];
+      } else {
+        print("Failed to refresh token: ${response.body}");
+      }
+    } catch (e) {
+      print("Refresh token error: $e");
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>?> getAccountInfo() async {
-    final token = await _storage.read(key: 'token');
+    final token = await getToken();
 
     if (token == null) {
       return null;
@@ -78,8 +122,11 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final body = jsonDecode(response.body);
+        print("Account Info: $body");
+        return body;
       } else {
+         print("❌ /auth/me failed: ${response.statusCode} - ${response.body}");
         return null;
       }
     } catch (e) {
@@ -114,7 +161,8 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await _storage.delete(key: "token"); //removing the saved JWT token
+    await _storage.delete(key: "access_token"); //removing the saved JWT token
+    await _storage.delete(key: "refresh_token");
   }
 
   Future<void> clearAll() async {

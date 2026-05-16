@@ -142,6 +142,9 @@ class _SignupPageState extends State<SignupPage> {
                             ),
                             const SizedBox(height: 16),
 
+                             
+
+
                             CustomButton(
                               onPressed: () async {
                                 if (formKey.currentState!.validate()) {
@@ -190,6 +193,33 @@ class _SignupPageState extends State<SignupPage> {
                                 }
                               },
                               label: 'SIGN UP',
+                            ),
+                            const SizedBox(height: 16,),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 4,
+                              children: [
+                                Text(
+                                  "Already have an account?",
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size(0, 0),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () {
+                                    context.go('/login');
+                                  },
+                                  child: Text(
+                                    'Login',
+                                    style: TextStyle(color: Colors.blue),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

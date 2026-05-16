@@ -42,8 +42,10 @@ class AppTheme {
           bodyColor: AppColors.darkTextColor,
           displayColor: AppColors.darkTextColor,
         ),
+    cardColor: Color(0xFF1F1F2E), // Slightly lighter than background
+    canvasColor: AppColors.darkBackground,
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor:Color(0xFF1F1F2E), //AppColors.darkBackground,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.darkNavInactive,
       selectedIconTheme: const IconThemeData(size: 28),
@@ -65,5 +67,16 @@ class AppTheme {
         ),
       ),
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Color(0xFF2A2A3D), // modern dark input field
+      hintStyle: TextStyle(color: Colors.grey[400]),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    ),
+    // Optional: Elevated Cards with shadow for better visibility
+    shadowColor: Colors.black54,
   );
 }

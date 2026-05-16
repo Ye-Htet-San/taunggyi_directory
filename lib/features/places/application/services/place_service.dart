@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:tgi_directory/features/places/data/models/place.dart';
 
 class PlaceService {
-  static const baseUrl = "http://192.168.43.149:8000";
+  // static String baseUrl = "http://10.10.8.119:8000";
+  static const baseUrl = "http://192.168.174.158:8000";
 
   // Get all places
   static Future<List<Place>> getPlaces() async {
@@ -16,6 +17,26 @@ class PlaceService {
     } else {
       throw Exception('Failed to load places');
     }
+  }
+
+  static Future<Place?> getPlace(int placeId, String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/places/$placeId/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    print("Fetched place: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return Place.fromJson(data);
+    } else {
+      print("Failed to fetch place: ${response.statusCode}");
+      return null;
+    }
+    
   }
 
   // Get favorites of current user
@@ -70,25 +91,5 @@ class PlaceService {
       return List<int>.from(jsonDecode(res.body));
     }
     throw Exception("Failed to load visited");
-  }
-
-  // Add review
-  static Future<void> addReview(
-    int placeId,
-    double rating,
-    String comment,
-    String token,
-  ) async {
-    final result = await http.post(
-      Uri.parse('$baseUrl/places/$placeId/reviews'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'rating': rating, 'comment': comment}),
-    );
-    if (result.statusCode != 200) {
-      throw Exception("Failed to add review");
-    }
   }
 }

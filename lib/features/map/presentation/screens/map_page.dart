@@ -1,309 +1,276 @@
-// ignore_for_file: deprecated_member_use
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tgi_directory/features/places/data/models/place.dart';
-// import 'package:tgi_directory/features/places/data/models/sample_places.dart';
 
-class MapPage extends StatefulWidget {
+// Google Maps
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmap;
+
+// Flutter Map (OSM)
+import 'package:flutter_map/flutter_map.dart' as fm;
+import 'package:latlong2/latlong.dart' as latlng;
+
+// Providers & Models
+import 'package:tgi_directory/features/map/application/providers/map_providers.dart';
+import 'package:tgi_directory/features/places/data/models/place.dart';
+import 'package:tgi_directory/features/places/application/providers/places_provider.dart';
+
+class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
-  //Fallback center (Taunggyi-ish)
-  static const LatLng _fallbackLatLng = LatLng(20.79905, 97.0339);
+class _MapPageState extends ConsumerState<MapPage> {
+  static const latlng.LatLng _fallbackLatLng = latlng.LatLng(20.79905, 97.0339);
 
-  //Turn this on if device is low-end/crashes with GL
-  //Lite mode disables gesture but is MUCH lighter.
+  final Completer<gmap.GoogleMapController> _gController = Completer();
+  final fm.MapController _fmController = fm.MapController();
 
-  static final bool _useLiteModeOnAndroid =
-      defaultTargetPlatform == TargetPlatform.android;
+  Set<gmap.Marker> _gMarkers = {};
+  List<fm.Marker> _fmMarkers = [];
+  final double _zoom = 14.0;
 
-  final Set<Marker> _markers = <Marker>{};
-  final Completer<GoogleMapController> _controller = Completer();
+  List<_PlaceWithDistance> _nearestPlaces = [];
 
-  Position? _currentPosition;
-  bool _loading = true;
-  String? _errorMessage;
-
-  //Cache the 5 nearest places so we don't recompute every build.
-  // List<_PlaceWithDistance> _nearest = const [];
+  bool _listening = false;
 
   @override
-  void initState() {
-    super.initState();
-    _init();
-  }
+  Widget build(BuildContext context) {
+    final posState = ref.watch(positionProvider);
+    final mapPref = ref.watch(mapPreferenceProvider);
+    final placesAsync = ref.watch(placesProvider);
 
-  Future<void> _init() async {
-    try {
-      //1) Check service
-      final serviceEnable = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnable) {
-        _error("Location services are disabled.");
-        return;
-      }
+    // ✅ Listen only once
+    if (!_listening) {
+      _listening = true;
 
-      //2) Check/request permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _error("Location permission denied.");
-      }
+      // Listen to position updates
+      ref.listen<PositionState>(positionProvider, (prev, next) {
+        final nextPos = next.position;
+        if (nextPos != null &&
+            (prev?.position == null || _distanceMoved(prev!.position!, nextPos) > 20)) {
+          _centerMapsTo(nextPos);
 
-      //3) Use last know first(fast)
-      final last = await Geolocator.getLastKnownPosition();
-      if (!mounted) return;
-      setState(() {
-        _currentPosition =
-            last ??
-            Position(
-              //fallback to city center if no last known
-              longitude: _fallbackLatLng.latitude,
-              latitude: _fallbackLatLng.longitude,
-              timestamp: DateTime.now(),
-              accuracy: 0,
-              altitude: 0,
-              altitudeAccuracy: 1,
-              heading: 0,
-              headingAccuracy: 1,
-              speed: 0,
-              speedAccuracy: 0,
-            );
+          final places = ref.read(placesProvider).maybeWhen(
+                data: (p) => p,
+                orElse: () => <Place>[],
+              );
+          _computeNearestAndMarkers(nextPos, places);
+        }
       });
 
-      //4) Compute nearest 5 & draw markers immediately
-      _computeNearestAndMarkers();
-
-      //5) Trying to refine with current GPS( but don't hang forever)
-      Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best,
-            timeLimit: const Duration(seconds: 5),
-          )
-          .then((pos) async {
-            if (!mounted) return;
-            setState(() {
-              _currentPosition = pos;
-            });
-            _computeNearestAndMarkers();
-
-            //Animate camera gently to exact position
-            if (_controller.isCompleted) {
-              final c = await _controller.future;
-              c.animateCamera(
-                CameraUpdate.newLatLng(LatLng(pos.latitude, pos.longitude)),
-              );
-            }
-          })
-          .catchError((_) {
-            //
-          });
-    } catch (e) {
-      _error("Error getting location:$e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          _loading = false;
+      // Listen to places updates
+      ref.listen<AsyncValue<List<Place>>>(placesProvider, (prev, next) {
+        next.whenData((places) {
+          final pos = ref.read(positionProvider).position;
+          if (pos != null) _computeNearestAndMarkers(pos, places);
         });
-      }
+      });
     }
-  }
 
-  void _error(String msg) {
-    if (!mounted) return;
-    setState(() {
-      _errorMessage = msg;
-      _loading = false;
-    });
-  }
+    // Loading UI
+    if (posState.loading || placesAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Nearby Places')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
-  void _computeNearestAndMarkers() {
-    if (_currentPosition == null) return;
+    // Error handling
+    if (posState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final scaffold = ScaffoldMessenger.of(context);
+        scaffold.clearSnackBars();
+        scaffold.showSnackBar(SnackBar(content: Text(posState.error!)));
+      });
+    }
 
-    final meLat = _currentPosition!.latitude;
-    final meLng = _currentPosition!.longitude;
-    final samplePlaces = [];
-    //Build typed list with distances
-    final List<_PlaceWithDistance> all =
-        samplePlaces.map((p) {
-          final dMeters = Geolocator.distanceBetween(
-            meLat,
-            meLng,
-            p.latitude,
-            p.longitude,
-          );
-          return _PlaceWithDistance(place: p, distanceMeters: dMeters);
-        }).toList();
+    final places = placesAsync.maybeWhen(data: (p) => p, orElse: () => <Place>[]);
 
-    //Sort by distance & take nearest 5
+    // Initial marker computation if empty
+    if (_gMarkers.isEmpty && posState.position != null && places.isNotEmpty) {
+      _computeNearestAndMarkers(posState.position, places);
+    }
 
-    all.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
-    final nearest = all.take(min(5, all.length)).toList();
+    final centerLatLng = posState.position != null
+        ? latlng.LatLng(posState.position!.latitude, posState.position!.longitude)
+        : _fallbackLatLng;
 
-    //Build markers : current + 5 places
-
-    final Set<Marker> markers = {
-      Marker(
-        markerId: const MarkerId('me'),
-        position: LatLng(meLat, meLng),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(title: 'You are here'),
-      ),
-
-      //Places
-      ...nearest.map((pw) {
-        final p = pw.place;
-        final dist = _prettyDistance(pw.distanceMeters);
-        return Marker(
-          markerId: MarkerId(p.id as String),
-          position: LatLng(p.latitude, p.longitude),
-          infoWindow: InfoWindow(
-            title: p.title,
-            snippet: dist,
-            onTap: () {
-              //Navigate to detail page
-              context.push('/place-detail', extra: p);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Nearby Places'),
+        actions: [
+          IconButton(
+            tooltip:
+                mapPref.useGoogleMap ? 'Switch to OpenStreetMap' : 'Switch to Google Maps',
+            icon: Icon(mapPref.useGoogleMap ? Icons.map : Icons.public),
+            onPressed: () async {
+              await ref.read(mapPreferenceProvider.notifier).toggle();
+              final pos = ref.read(positionProvider).position;
+              if (pos != null) _centerMapsTo(pos);
             },
           ),
-        );
-      }),
-    };
-
-    if (!mounted) return;
-    setState(() {
-      // _nearest = nearest;
-      _markers
-        ..clear()
-        ..addAll(markers);
-    });
-  }
-
-  String _prettyDistance(double meters) {
-    if (meters < 1000) {
-      return '${meters.toStringAsFixed(0)}m';
-    }
-    return '${(meters / 1000).toStringAsFixed(2)}km';
-    //
-  }
-
-  Future<void> _recenter() async {
-    if (_currentPosition == null) return;
-    if (!_controller.isCompleted) return;
-    final c = await _controller.future;
-    await c.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        15,
+        ],
+      ),
+      body: mapPref.useGoogleMap
+          ? _buildGoogleMap(centerLatLng)
+          : _buildFlutterMap(centerLatLng),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.my_location),
+        onPressed: () {
+          final pos = ref.read(positionProvider).position;
+          if (pos != null) _centerMapsTo(pos);
+        },
       ),
     );
   }
 
-  Future<void> _refresh() async {
-    setState(() {
-      _loading = true;
-    });
-    _errorMessage = null;
-    await _init();
+  double _distanceMoved(Position a, Position b) {
+    return Geolocator.distanceBetween(a.latitude, a.longitude, b.latitude, b.longitude);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Nearby Places')),
-        body: Center(child: CircularProgressIndicator()),
-      );
+  Future<void> _centerMapsTo(Position pos) async {
+    // Google Map
+    if (_gController.isCompleted) {
+      try {
+        final ctrl = await _gController.future;
+        await ctrl.animateCamera(
+          gmap.CameraUpdate.newLatLng(gmap.LatLng(pos.latitude, pos.longitude)),
+        );
+      } catch (_) {}
     }
 
-    if (_errorMessage != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Nearby Places')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+    // Flutter Map
+    try {
+      _fmController.move(latlng.LatLng(pos.latitude, pos.longitude), _zoom);
+    } catch (_) {}
+  }
+
+  void _computeNearestAndMarkers(Position? pos, List<Place> allPlaces) {
+    if (pos == null) return;
+
+    final lat = pos.latitude;
+    final lng = pos.longitude;
+
+    _nearestPlaces = allPlaces
+        .map((p) {
+          final distance = Geolocator.distanceBetween(lat, lng, p.latitude, p.longitude);
+          return _PlaceWithDistance(place: p, distanceMeters: distance);
+        })
+        .toList()
+      ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+
+    final nearest = _nearestPlaces.take(min(5, _nearestPlaces.length)).toList();
+
+    // Google Maps markers
+    final gmarkers = <gmap.Marker>{
+      gmap.Marker(
+        markerId: const gmap.MarkerId('me'),
+        position: gmap.LatLng(lat, lng),
+        icon: gmap.BitmapDescriptor.defaultMarkerWithHue(gmap.BitmapDescriptor.hueBlue),
+        infoWindow: const gmap.InfoWindow(title: 'You are here'),
+      ),
+      ...nearest.map(
+        (pw) => gmap.Marker(
+          markerId: gmap.MarkerId(pw.place.id.toString()),
+          position: gmap.LatLng(pw.place.latitude, pw.place.longitude),
+          infoWindow: gmap.InfoWindow(
+            title: pw.place.title,
+            snippet: _prettyDistance(pw.distanceMeters),
+            onTap: () => context.push('/place-detail', extra: pw.place),
+          ),
+        ),
+      ),
+    };
+
+    // Flutter Map markers
+    final fmMarkers = <fm.Marker>[
+      fm.Marker(
+        point: latlng.LatLng(lat, lng),
+        width: 48,
+        height: 48,
+        child: const Icon(Icons.my_location, size: 32, color: Colors.blue),
+      ),
+      ...nearest.map(
+        (pw) => fm.Marker(
+          point: latlng.LatLng(pw.place.latitude, pw.place.longitude),
+          width: 120,
+          height: 60,
+          child: GestureDetector(
+            onTap: () => context.push('/place-detail', extra: pw.place),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () async {
-                    await Geolocator.openLocationSettings();
-                  },
-                  child: const Text('Open Location Settings'),
+                const Icon(Icons.location_pin, size: 36, color: Colors.red),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 100),
+                  child: Text(
+                    pw.place.title,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _refresh,
-          child: const Icon(Icons.refresh),
+      ),
+    ];
+
+    setState(() {
+      _gMarkers = gmarkers;
+      _fmMarkers = fmMarkers;
+    });
+  }
+
+  String _prettyDistance(double meters) {
+    return meters < 1000
+        ? '${meters.toStringAsFixed(0)} m'
+        : '${(meters / 1000).toStringAsFixed(2)} km';
+  }
+
+  Widget _buildGoogleMap(latlng.LatLng center) {
+    final initialCamera = gmap.CameraPosition(
+      target: gmap.LatLng(center.latitude, center.longitude),
+      zoom: _zoom,
+    );
+
+    return gmap.GoogleMap(
+      initialCameraPosition: initialCamera,
+      markers: _gMarkers,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      mapType: gmap.MapType.normal,
+      buildingsEnabled: true,
+      liteModeEnabled: true,
+      minMaxZoomPreference: const gmap.MinMaxZoomPreference(5, 18),
+      onMapCreated: (ctrl) {
+        if (!_gController.isCompleted) _gController.complete(ctrl);
+      },
+    );
+  }
+
+  Widget _buildFlutterMap(latlng.LatLng center) {
+    return fm.FlutterMap(
+      mapController: _fmController,
+      options: fm.MapOptions(
+        initialCenter: center,
+        initialZoom: _zoom,
+        interactionOptions: fm.InteractionOptions(flags: fm.InteractiveFlag.all),
+      ),
+      children: [
+        fm.TileLayer(
+          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          subdomains: const ['a', 'b', 'c'],
+          userAgentPackageName: 'com.example.tgi_directory',
         ),
-      );
-    }
-
-    final LatLng center =
-        _currentPosition == null
-            ? _fallbackLatLng
-            : LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Nearby Places')),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(target: center, zoom: 14.5),
-        markers: _markers,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        mapType: MapType.normal,
-
-        // Performance knobs for older devices:
-        buildingsEnabled: false,
-        indoorViewEnabled: false,
-        trafficEnabled: false,
-
-        // Lite mode is much lighter on Android devices prone to Adreno/GL crashes.
-        liteModeEnabled: false,
-
-        // Reduce zoom span to avoid huge tile loads
-        minMaxZoomPreference: const MinMaxZoomPreference(10, 18),
-
-        onMapCreated: (controller) {
-          if (!_controller.isCompleted) {
-            _controller.complete(controller);
-          }
-        },
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'refresh',
-            onPressed: _refresh,
-            child: const Icon(Icons.refresh),
-          ),
-          // const SizedBox(height: 10),
-          // FloatingActionButton(
-          //   heroTag: 'center',
-          //   onPressed: _recenter,
-          //   child: const Icon(Icons.my_location),
-          // ),
-        ],
-      ),
+        fm.MarkerLayer(markers: _fmMarkers),
+      ],
     );
   }
 }

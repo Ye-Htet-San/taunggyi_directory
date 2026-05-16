@@ -130,7 +130,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       passwordController.text,
                                       ref,
                                     );
+                                print("User ID from login: $userId");
+                                // final token = await AuthService().getToken();
+                                // print("Token in app: $token");
 
+                                // final account =
+                                //     await AuthService().getAccountInfo();
+                                // print("My Account: $account");
+                                // <-- here
                                 ScaffoldMessenger.of(
                                   context,
                                 ).hideCurrentSnackBar();
@@ -145,7 +152,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   //   const Duration(milliseconds: 500),
                                   // );
                                   if (!mounted) return;
-                                  context.go('/auth-splash'); // navigate after login
+                                  context.go(
+                                    '/auth-splash',
+                                  ); // navigate after login
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Login failed")),

@@ -1,3 +1,7 @@
+// ignore_for_file: avoid_print
+
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
 import 'package:tgi_directory/features/profile/data/models/user_profile.dart';
@@ -33,16 +37,41 @@ class ProfileNotifier extends StateNotifier<UserProfile?> {
     state = profile;
   }
 
-  // Update profile (backend + local)
-  Future<bool> updateProfile(UserProfile profile) async {
-    final success = await service.updateProfileBackend(profile);
-    if (success) {
-      final refreshedProfile = await service.fetchProfileFromBackend();
-      if (refreshedProfile != null) {
-        state = refreshedProfile;//Always show latest data from backend
+  // Update profile (backend + local) / Optionally upload newAvatar first ,then send text update
+
+  Future<bool> updateProfile(UserProfile profile, {File? newAvatar}) async {
+    String? avatarPath = profile.avatarPath;
+
+    // 1) Upload new avatar if provided
+    if (newAvatar != null) {
+      final uploadedPath = await service.uploadProfileImage(newAvatar);
+      if (uploadedPath != null) {
+        avatarPath = uploadedPath; // ✅ use backend path, not local
+        
+      } else {
+        // upload failed - you can choose to abort or continue.
+        // we'll continue (so only text updates happens) but print a message.
+        print("Avatar uploaded fialed, proceeding with text update only.");
       }
     }
-    return success;
+
+    // 2) Build new profile object with updated avatarOath
+    final updatedProfile = profile.copyWith(avatarPath: avatarPath);
+    // 3) Call backend to update text fields (and stored avatarPath)
+
+    final success = await service.updateProfileBackend(updatedProfile);
+
+    if (success) {
+      // refresh from backend to get canonical representation
+
+      final refreshedProfile = await service.fetchProfileFromBackend();
+      if (refreshedProfile != null) {
+        state = refreshedProfile; //Always show latest data from backend
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /// Clear profile on logout
