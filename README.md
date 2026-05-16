@@ -26,13 +26,30 @@ Beyond being a simple directory, the platform fosters community engagement by al
 
 ## 📸 Screenshots
 
-| Home Screen | Place Details | Ratings & Reviews |
-| :---: | :---: | :---: |
-| <img width="720" height="1472" alt="IMG_20250909_214255" src="https://github.com/user-attachments/assets/11ab360c-a853-441b-9303-200e26f73cd7" />
-<img width="720" height="1466" alt="IMG_20250910_122731" src="https://github.com/user-attachments/assets/33089f7e-32ac-424c-9757-506855b6aef0" />
-| <img width="720" height="1458" alt="IMG_20250910_122753" src="https://github.com/user-attachments/assets/c80db330-6cba-4ecd-8e42-f640e63e9034" />
-| <img width="720" height="1470" alt="IMG_20250910_123054" src="https://github.com/user-attachments/assets/f110e983-31ec-44dd-8023-b3f7bb80c214" />
-|
+<table width="100%">
+  <!-- Table Header -->
+  <tr>
+    <th width="50%">Home Screen</th>
+    <th width="25%">Place Details</th>
+    <th width="25%">Ratings & Reviews</th>
+  </tr>
+  <!-- Table Data / Images -->
+  <tr valign="top">
+    <!-- Home Screen Column (2 Images side-by-side) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/11ab360c-a853-441b-9303-200e26f73cd7" width="48%" alt="Home Screen 1" />
+      <img src="https://github.com/user-attachments/assets/33089f7e-32ac-424c-9757-506855b6aef0" width="48%" alt="Home Screen 2" />
+    </td>
+    <!-- Place Details Column (1 Image) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/c80db330-6cba-4ecd-8e42-f640e63e9034" width="96%" alt="Place Details" />
+    </td>
+    <!-- Ratings & Reviews Column (1 Image) -->
+    <td>
+      <img src="https://github.com/user-attachments/assets/f110e983-31ec-44dd-8023-b3f7bb80c214" width="96%" alt="Ratings and Reviews" />
+    </td>
+  </tr>
+</table>
 
 ---
 
