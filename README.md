@@ -55,7 +55,7 @@ Beyond being a simple directory, the platform fosters community engagement by al
   </tr>
   <!-- ROW 2 IMAGES -->
   <tr valign="top">
-    <!-- Search Column (2 Images side-by-side) -->
+    <!-- Search Column (1 Image) -->
     <td>
       <img src="https://github.com/user-attachments/assets/b7f13d33-5d9c-4f05-b5a9-77d336617821" width="96%" alt="Search Places 1" />
     </td>
@@ -63,13 +63,13 @@ Beyond being a simple directory, the platform fosters community engagement by al
     <td>
       <img src="https://github.com/user-attachments/assets/6f22b276-8fbf-484d-a238-7491ceae4b79" width="96%" alt="Profile Screen" />
     </td>
-    <!-- Settings Column (1 Image) -->
+    <!-- Settings Column (2 Images side-by-side) -->
     <td>
       <img src="https://github.com/user-attachments/assets/0a3d9756-82fd-4674-aa2b-5f66697366cc" width="48%" alt="Settings Screen Light Mode" />
       <img src="https://github.com/user-attachments/assets/df8c8cb9-c54d-4bc2-bb0f-c2467b0d2639" width="48%" alt="Settings Screen Dark Mode" />
+    </td>
   </tr>
 </table>
-
 ---
 
 ## ⚙️ Getting Started
