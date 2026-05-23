@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/categories/presentation/widgets/category_card.dart';
 import 'package:tgi_directory/features/home/presentation/widgets/section_title.dart';
 
@@ -13,10 +14,10 @@ class CategorySection extends StatelessWidget {
 
   // static const String baseUrl = "http://10.10.8.119:8000";
 
-  static const String baseUrl = "http://192.168.245.158:8000";
+  // static const String baseUrl = "http://192.168.245.158:8000";
 
   Future<List<Map<String, dynamic>>> fetchCategories() async {
-    final url = Uri.parse("$baseUrl/categories/");
+    final url = Uri.parse("${ApiConfig.baseIp}/categories/");
     final res = await http.get(url);
 
     if (res.statusCode == 200) {

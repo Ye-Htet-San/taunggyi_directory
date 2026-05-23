@@ -19,7 +19,7 @@ class PlaceSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final placesAsync = ref.watch(placesProvider);
     final placesNotifier = ref.read(placesProvider.notifier);
-
+    
     final reviews = ref.watch(reviewsProvider);
 
     return RefreshIndicator(
