@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/favorites/application/providers/favorites_provider.dart';
 import 'package:tgi_directory/features/profile/application/providers/profile_provider.dart';
-import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
+// import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
 import 'package:tgi_directory/features/profile/presentation/widgets/stat_card.dart';
 import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 import 'package:tgi_directory/features/visited/application/providers/visited_provider.dart';
@@ -58,7 +59,7 @@ class ProfilePage extends ConsumerWidget {
                         profile != null
                             ? (profile.avatarPath.startsWith('/uploads/')
                                     ? NetworkImage(
-                                      '${ProfileService().imageBase}${profile.avatarPath}',
+                                      '${ApiConfig.baseIp}${profile.avatarPath}',
                                     )
                                     : AssetImage(profile.avatarPath))
                                 as ImageProvider

@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/config/url_luncher.dart';
 import 'package:tgi_directory/features/auth/application/services/auth_service.dart';
 import 'package:tgi_directory/features/favorites/application/providers/favorites_provider.dart';
-import 'package:tgi_directory/features/places/application/services/place_service.dart';
+// import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
 import 'package:tgi_directory/features/places/presentation/screens/info_row.dart';
 import 'package:tgi_directory/features/places/presentation/widgets/name_tag.dart';
@@ -69,7 +70,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
         if (rawAvatar != null &&
             rawAvatar.isNotEmpty &&
             rawAvatar.startsWith('/uploads')) {
-          rawAvatar = '${PlaceService.baseUrl}$rawAvatar';
+          rawAvatar = '${ApiConfig.baseIp}$rawAvatar';
         }
         setState(() {
           userName = rawName;
@@ -163,7 +164,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
           if (rawAvatar != null &&
               rawAvatar.isNotEmpty &&
               rawAvatar.startsWith('/uploads')) {
-            rawAvatar = '${PlaceService.baseUrl}$rawAvatar';
+            rawAvatar = '${ApiConfig.baseIp}$rawAvatar';
           }
           userName = rawName;
           userAvatar = rawAvatar ?? '';
@@ -282,7 +283,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
                                             ),
                                             child: CachedNetworkImage(
                                               imageUrl:
-                                                  '${PlaceService.baseUrl}/$imagePath',
+                                                  '${ApiConfig.baseIp}/$imagePath',
                                               fit:
                                                   BoxFit
                                                       .contain, // keep aspect ratio
@@ -313,7 +314,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: CachedNetworkImage(
-                                imageUrl: '${PlaceService.baseUrl}/$imagePath',
+                                imageUrl: '${ApiConfig.baseIp}/$imagePath',
                                 fit: BoxFit.cover,
                                 placeholder:
                                     (context, url) => Container(

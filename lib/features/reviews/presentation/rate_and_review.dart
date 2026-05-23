@@ -1,8 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/auth/application/services/auth_service.dart';
-import 'package:tgi_directory/features/places/application/services/place_service.dart';
+// import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/reviews/application/services/reviews_service.dart';
 import 'package:tgi_directory/features/reviews/widgets/user_avatar.dart';
 
@@ -65,7 +66,7 @@ class _RateAndReviewState extends State<RateAndReview> {
         if (rawAvatar != null &&
             rawAvatar.isNotEmpty &&
             rawAvatar.startsWith('/uploads')) {
-          rawAvatar = '${PlaceService.baseUrl}$rawAvatar';
+          rawAvatar = '${ApiConfig.baseIp}$rawAvatar';
         }
         setState(() {
           userName = rawName;

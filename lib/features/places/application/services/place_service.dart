@@ -1,15 +1,16 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
 
 class PlaceService {
   // static String baseUrl = "http://10.10.8.119:8000";
-  static const baseUrl = "http://192.168.245.158:8000";
+  // static const baseUrl = "http://192.168.245.158:8000";
 
   // Get all places
   static Future<List<Place>> getPlaces() async {
-    final response = await http.get(Uri.parse('$baseUrl/places/'));
+    final response = await http.get(Uri.parse('${ApiConfig.placesUrl}/'));
     print(response.body);
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
@@ -21,7 +22,7 @@ class PlaceService {
 
   static Future<Place?> getPlace(int placeId, String token) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/places/$placeId/'),
+      Uri.parse('${ApiConfig.placesUrl}/$placeId/'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -42,7 +43,7 @@ class PlaceService {
   // Get favorites of current user
   static Future<List<int>> fetchFavorites(String token) async {
     final result = await http.get(
-      Uri.parse("$baseUrl/places/me/favorites"),
+      Uri.parse("${ApiConfig.placesUrl}/me/favorites"),
       headers: {"Authorization": "Bearer $token"},
     );
     if (result.statusCode == 200) {
@@ -55,7 +56,7 @@ class PlaceService {
   // Toggle favorite
   static Future<void> toggleFavorite(int placeId, String token) async {
     final result = await http.post(
-      Uri.parse('$baseUrl/places/$placeId/favorite'),
+      Uri.parse('${ApiConfig.placesUrl}/$placeId/favorite'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ class PlaceService {
 
   static Future<void> markVisited(int placeId, String token) async {
     final result = await http.post(
-      Uri.parse('$baseUrl/places/$placeId/visited'),
+      Uri.parse('${ApiConfig.placesUrl}/$placeId/visited'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ class PlaceService {
   /// Get visited places
   static Future<List<int>> fetchVisited(String token) async {
     final res = await http.get(
-      Uri.parse("$baseUrl/places/me/visited"),
+      Uri.parse("${ApiConfig.placesUrl}/me/visited"),
       headers: {"Authorization": "Bearer $token"},
     );
     if (res.statusCode == 200) {

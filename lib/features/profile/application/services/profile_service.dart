@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/auth/application/services/auth_service.dart';
 import 'package:tgi_directory/features/profile/data/models/user_profile.dart';
 
@@ -13,9 +14,9 @@ class ProfileService {
   static const String profileKey = "userProfile";
 
   // final String baseUrl = "http://10.10.8.119:8000/auth";
-  final String baseUrl = "http://192.168.245.158:8000/auth";
+  // final String baseUrl = "http://192.168.245.158:8000/auth";
 
-  final String imageBase = "http://192.168.245.158:8000";
+  // final String imageBase = "http://192.168.245.158:8000";
 
   //Save profile to SharedPreferences
   Future<void> saveProfile(UserProfile profile) async {
@@ -54,7 +55,7 @@ class ProfileService {
     }
 
     final response = await http.get(
-      Uri.parse('$baseUrl/me'),
+      Uri.parse('${ApiConfig.authUrl}/me'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -76,7 +77,7 @@ class ProfileService {
     final token = await authService.getToken();
     if (token == null) return null;
 
-    final uri = Uri.parse('$baseUrl/profile/upload-image');
+    final uri = Uri.parse('${ApiConfig.authUrl}/upload-image');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -112,7 +113,7 @@ class ProfileService {
     }
 
     final response = await http.put(
-      Uri.parse('$baseUrl/profile/update'),
+      Uri.parse('${ApiConfig.authUrl}/update'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

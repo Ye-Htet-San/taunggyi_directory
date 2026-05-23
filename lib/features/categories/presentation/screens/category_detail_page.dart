@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/categories/applications/services/categories_service.dart';
 // import 'package:tgi_directory/features/home/presentation/widgets/place_section.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
@@ -165,7 +166,7 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
                                   place.images.isNotEmpty
                                       ? CachedNetworkImage(
                                         imageUrl:
-                                            '${PlaceService.baseUrl}/${place.images[0]}',
+                                            '${ApiConfig.baseIp}/${place.images[0]}',
                                         height: 100,
                                         width: double.infinity,
                                         fit: BoxFit.cover,

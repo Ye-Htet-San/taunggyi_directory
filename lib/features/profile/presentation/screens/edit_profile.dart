@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/profile/application/providers/profile_provider.dart';
-import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
+// import 'package:tgi_directory/features/profile/application/services/profile_service.dart';
 import 'package:tgi_directory/features/profile/data/models/user_profile.dart';
 import 'package:tgi_directory/features/profile/presentation/widgets/editable_card.dart';
 
@@ -196,7 +197,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                           '/uploads',
                                         )
                                     ? NetworkImage(
-                                      '${ProfileService().imageBase}${profile.avatarPath}',
+                                      '${ApiConfig.baseIp}${profile.avatarPath}',
                                     )
                                     : (profile != null)
                                     ? AssetImage(profile.avatarPath)

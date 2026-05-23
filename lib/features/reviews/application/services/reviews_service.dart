@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/reviews/data/models/review.dart';
 
 class ReviewService {
-  static const baseUrl = "http://192.168.245.158:8000";
+  // static const baseUrl = "http://192.168.245.158:8000";
 
   // Fetch current user's review for a place
   static Future<Review?> getMyReview(int placeId, String token) async {
     final response = await http.get(
-      Uri.parse("$baseUrl/reviews/my/$placeId"),
+      Uri.parse("${ApiConfig.reviewsUrl}/my/$placeId"),
       headers: {"Authorization": "Bearer $token"},
     );
 
@@ -31,7 +32,7 @@ class ReviewService {
     required String token,
   }) async {
     final res = await http.post(
-      Uri.parse('$baseUrl/reviews/$placeId'),
+      Uri.parse('${ApiConfig.reviewsUrl}/$placeId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ class ReviewService {
   }
 
   static Future<List<Review>> getReviews(int placeId) async {
-    final res = await http.get(Uri.parse('$baseUrl/reviews/places/$placeId'));
+    final res = await http.get(Uri.parse('${ApiConfig.reviewsUrl}/places/$placeId'));
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as List<dynamic>;
       // Provide placeId fallback because backend list responses do not include place_id
@@ -68,7 +69,7 @@ class ReviewService {
     required String token,
   }) async {
     final res = await http.put(
-      Uri.parse('$baseUrl/reviews/$reviewId'),
+      Uri.parse('${ApiConfig.reviewsUrl}/$reviewId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ class ReviewService {
     required String token,
   }) async {
     final res = await http.post(
-      Uri.parse('$baseUrl/reviews/$reviewId/reaction'),
+      Uri.parse('${ApiConfig.reviewsUrl}/$reviewId/reaction'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ class ReviewService {
     required String token,
   }) async {
     final res = await http.delete(
-      Uri.parse('$baseUrl/reviews/$reviewId'),
+      Uri.parse('${ApiConfig.reviewsUrl}/$reviewId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 

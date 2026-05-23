@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/categories/applications/services/categories_service.dart';
 import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/places/data/models/place.dart';
@@ -237,7 +238,7 @@ class _SearchPlacesPageState extends ConsumerState<SearchPlacesPage> {
                               borderRadius: BorderRadius.circular(8),
                               child: CachedNetworkImage(
                                 imageUrl:
-                                    '${PlaceService.baseUrl}/${place.images[0]}',
+                                    '${ApiConfig.baseIp}/${place.images[0]}',
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
