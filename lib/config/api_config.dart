@@ -9,7 +9,7 @@ class ApiConfig {
   static const String _homeIp = "http://10.10.8.119:8000";
 
   /// Update this when the host device gets a new hotspot IP
-  static const String _hotsoptIp = "http://192.168.245.158:8000";
+  static const String _hotsoptIp = "http://192.168.42.158:8000";
 
   // Future live server domain
   static const String _productionUrl = "https://api.taunggyidirectory.com";
