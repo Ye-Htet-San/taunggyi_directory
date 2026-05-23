@@ -5,7 +5,7 @@ import 'package:tgi_directory/features/places/data/models/place.dart';
 
 class PlaceService {
   // static String baseUrl = "http://10.10.8.119:8000";
-  static const baseUrl = "http://192.168.174.158:8000";
+  static const baseUrl = "http://192.168.245.158:8000";
 
   // Get all places
   static Future<List<Place>> getPlaces() async {

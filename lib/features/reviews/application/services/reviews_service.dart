@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:tgi_directory/features/reviews/data/models/review.dart';
 
 class ReviewService {
-  static const baseUrl = "http://192.168.174.158:8000";
+  static const baseUrl = "http://192.168.245.158:8000";
 
   // Fetch current user's review for a place
   static Future<Review?> getMyReview(int placeId, String token) async {

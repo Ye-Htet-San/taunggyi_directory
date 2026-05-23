@@ -11,7 +11,7 @@ class Review {
   final int dislikes;
   final bool isMyReview;
 
-  static const String _baseUrl = "http://192.168.174.158:8000";
+  static const String _baseUrl = "http://192.168.245.158:8000";
 
   Review({
     required this.id,

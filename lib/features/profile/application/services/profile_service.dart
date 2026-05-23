@@ -13,9 +13,9 @@ class ProfileService {
   static const String profileKey = "userProfile";
 
   // final String baseUrl = "http://10.10.8.119:8000/auth";
-  final String baseUrl = "http://192.168.174.158:8000/auth";
+  final String baseUrl = "http://192.168.245.158:8000/auth";
 
-  final String imageBase = "http://192.168.174.158:8000";
+  final String imageBase = "http://192.168.245.158:8000";
 
   //Save profile to SharedPreferences
   Future<void> saveProfile(UserProfile profile) async {

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/auth/data/models/user_model.dart';
 
 class AuthService {
@@ -10,13 +11,13 @@ class AuthService {
   // final String baseUrl = "http://10.10.8.119:8000/auth";
 
   // Wifi from Android
-  final String baseUrl = "http://192.168.174.158:8000/auth";
+  // final String baseUrl = "http://192.168.245.158:8000/auth";
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<bool> signup(UserModel user) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/signup"),
+        Uri.parse("${ApiConfig.authUrl}/signup"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(user.toJson()),
       );
@@ -33,7 +34,7 @@ class AuthService {
   Future<bool> login(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/login"),
+        Uri.parse("${ApiConfig.authUrl}/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": email, "password": password}),
       );
@@ -84,7 +85,7 @@ class AuthService {
   Future<String?> _refreshAccessToken(String refreshToken) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/refresh"),
+        Uri.parse("${ApiConfig.authUrl}/refresh"),
         headers: {"Authorization": "Bearer $refreshToken"},
       );
 
@@ -114,7 +115,7 @@ class AuthService {
 
     try {
       final response = await http.get(
-        Uri.parse("$baseUrl/me"),
+        Uri.parse("${ApiConfig.authUrl}/me"),
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
@@ -143,7 +144,7 @@ class AuthService {
 
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/change-password"),
+        Uri.parse("${ApiConfig.authUrl}/change-password"),
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
