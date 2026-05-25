@@ -1,3 +1,5 @@
+import 'package:tgi_directory/config/api_config.dart';
+
 class Review {
   final String id;
   final String placeId;
@@ -11,7 +13,7 @@ class Review {
   final int dislikes;
   final bool isMyReview;
 
-  static const String _baseUrl = "http://192.168.245.158:8000";
+  // static const String _baseUrl = "http://192.168.42.158:8000";
 
   Review({
     required this.id,
@@ -37,7 +39,7 @@ class Review {
         (json['place_id'] ?? json['placeId']?.toString() ?? placeId ?? '');
     final rawAvatar = json['user_avatar'] ?? json['userAvatar'] ?? '';
     final avatar =
-        (rawAvatar.startsWith('/uploads')) ? '$_baseUrl$rawAvatar' : rawAvatar;
+        (rawAvatar.startsWith('/uploads')) ? '${ApiConfig.baseIp}$rawAvatar' : rawAvatar;
 
      final createdAt = json['created_at'] ?? json['date'] ?? json['createdAt'];
     DateTime parsedDate;

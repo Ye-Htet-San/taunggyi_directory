@@ -28,14 +28,20 @@ class _ReviewsSectionState extends ConsumerState<ReviewsSection> {
     // Load Reviews for this place
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Get Auth account info
       final accountInfo = await AuthService().getAccountInfo();
+
+      // Check of still mounted before updating variable ,Exist if widget was disposed while waiting
+      if (!mounted) return;
       myUserId = accountInfo?['userId']?.toString();
 
       // load all reviews
       await ref.read(reviewsProvider.notifier).loadFromBackend(widget.placeId);
-      setState(() {
-        {}
-      });
+
+      // Final mounted check before setState
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -52,12 +58,9 @@ class _ReviewsSectionState extends ConsumerState<ReviewsSection> {
             )
             .toList();
 
-
     // Limit to 3 reviews
     final limitedReviews =
-        placeReviews.length > 3
-            ? placeReviews.sublist(0, 3)
-            : placeReviews;
+        placeReviews.length > 3 ? placeReviews.sublist(0, 3) : placeReviews;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,6 +83,7 @@ class _ReviewsSectionState extends ConsumerState<ReviewsSection> {
         else
           ...limitedReviews.map((review) {
             final isExpanded = _expandedReviews[review.id] ?? false;
+
             print(limitedReviews);
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 6),

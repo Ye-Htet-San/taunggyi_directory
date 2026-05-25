@@ -2,9 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:tgi_directory/config/api_config.dart';
 import 'package:tgi_directory/features/home/presentation/widgets/section_title.dart';
 import 'package:tgi_directory/features/places/application/providers/places_provider.dart';
+import 'package:tgi_directory/features/places/data/models/place.dart';
 // import 'package:tgi_directory/features/places/application/services/place_service.dart';
 import 'package:tgi_directory/features/reviews/application/providers/reviews_provider.dart';
 import 'package:tgi_directory/features/reviews/data/models/review.dart';
@@ -19,7 +21,7 @@ class PlaceSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final placesAsync = ref.watch(placesProvider);
     final placesNotifier = ref.read(placesProvider.notifier);
-    
+
     final reviews = ref.watch(reviewsProvider);
 
     return RefreshIndicator(
@@ -30,24 +32,53 @@ class PlaceSection extends ConsumerWidget {
           final cached = placesNotifier.cached;
           if (cached.isNotEmpty) {
             final places = _filterPlaces(cached);
-            return _buildPlaceList(context, places, reviews);
+            return _buildPlaceList(context, places, reviews,isLoading: false);
           }
           // else show loader
-          return const Center(child: CircularProgressIndicator());
+          // return const Center(child: CircularProgressIndicator());
+          return Skeletonizer(
+            enabled: true,
+            child: _buildPlaceList(
+              context,
+              List.generate(3, (index) => _createDummyPlace()),
+              reviews,
+              isLoading: true
+            ),
+          );
         },
         error: (error, _) {
           final cached = placesNotifier.cached;
           if (cached.isNotEmpty) {
             final places = _filterPlaces(cached);
-            return _buildPlaceList(context, places, reviews);
+            return _buildPlaceList(context, places, reviews,isLoading: false);
           }
-          return Center(child: Text('Failed to load places'));
+          return Center(child: Text('Failed to load $title'));
         },
         data: (allPlaces) {
           final places = _filterPlaces(allPlaces);
-          return _buildPlaceList(context, places, reviews);
+          return _buildPlaceList(context, places, reviews,isLoading: false);
         },
       ),
+    );
+  }
+  // Helper to create a dummy Place without changing place model
+  Place _createDummyPlace() {
+    return Place(
+      id: 0,
+      title: "Loading...",
+      images: [""],
+      rating: 0.0,
+      description: "Loading description...",
+      categoryId: 0,
+      subcategoryId: 0,
+      address: "",
+      phone: [],
+      email: "",
+      website: "",
+      openingHours: [],
+      paymentMethods: [],
+      latitude: 0.0,
+      longitude: 0,
     );
   }
 
@@ -61,6 +92,7 @@ class PlaceSection extends ConsumerWidget {
     BuildContext context,
     List places,
     List<Review> reviews,
+    {required bool isLoading}
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,13 +125,12 @@ class PlaceSection extends ConsumerWidget {
             itemCount: places.length,
             itemBuilder: (context, index) {
               final place = places[index];
-              
+
               //Count reviews only for this place
 
-              final placeReviewCount = reviews.where(
-                (r) => r.placeId == place.id.toString(),
-              ).length;
-              
+              final placeReviewCount =
+                  reviews.where((r) => r.placeId == place.id.toString()).length;
+
               print('placeReviewCount :$placeReviewCount');
               return Padding(
                 padding: const EdgeInsets.only(right: 12),

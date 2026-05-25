@@ -77,7 +77,7 @@ class ProfileService {
     final token = await authService.getToken();
     if (token == null) return null;
 
-    final uri = Uri.parse('${ApiConfig.authUrl}/upload-image');
+    final uri = Uri.parse('${ApiConfig.authUrl}/profile/upload-image');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -113,7 +113,7 @@ class ProfileService {
     }
 
     final response = await http.put(
-      Uri.parse('${ApiConfig.authUrl}/update'),
+      Uri.parse('${ApiConfig.authUrl}/profile/update'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
