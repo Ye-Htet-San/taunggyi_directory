@@ -8,19 +8,27 @@ Beyond being a simple directory, the platform fosters community engagement by al
 
 ## 🚀 Features
 
-*   **Comprehensive Location Guide:** Discover and browse through categorized listings including restaurants, cafes, hotels, hospitals, pagodas, and tourist spots across Taunggyi.
-*   **Detailed Place Information:** View essential details for every listing, such as operating hours, contact details, exact addresses, and descriptive overviews.
-*   **Interactive Ratings & Feedback:** Share your experiences by rating places out of 5 stars, helping the community identify the best spots in town.
-*   **Expressive Reactions:** React to locations (likes, favorites, saves) to quickly bookmark places you love or want to visit later.
-*   **Optimized Performance:** Smooth UI/UX transitions engineered with Flutter's cross-platform rendering capabilities.
+* **Comprehensive Location Guide:** Discover and browse through categorized listings including restaurants, cafes, hotels, hospitals, pagodas, and tourist spots across Taunggyi.
+* **Detailed Place Information:** View essential details for every listing, such as operating hours, contact details, exact addresses, and descriptive overviews.
+* **Interactive Ratings & Feedback:** Share your experiences by rating places out of 5 stars, helping the community identify the best spots in town.
+* **Expressive Reactions:** React to locations (likes, favorites, saves) to quickly bookmark places you love or want to visit later.
+* **Optimized Performance:** Smooth UI/UX transitions engineered with Flutter's cross-platform rendering capabilities.
 
 ---
 
 ## 🛠️ Tech Stack
 
-*   **Framework:** [Flutter](https://flutter.dev/) (Dart)
-*   **Architecture:** Clean Architecture /Provider (State Management) 
-*   **Database/Backend:** Python / REST API
+**Frontend (Mobile App)**
+* **Framework:** [Flutter](https://flutter.dev/) (Dart)
+* **State Management:** Riverpod (`flutter_riverpod`) for reactive and scalable state handling
+* **Routing:** GoRouter for declarative navigation
+* **UI & Animations:** Skeletonizer (smooth loading states), Carousel Slider (image galleries), Cached Network Image (optimized media loading)
+
+**Backend (REST API)**
+* **Framework:** Python / [FastAPI](https://fastapi.tiangolo.com/) (High-performance web framework)
+* **Database:** SQLite (Development & Local Data Management)
+* **Data Validation:** Pydantic V2
+* **Security:** JWT (JSON Web Token) Authentication for secure login and protected routes
 
 ---
 
